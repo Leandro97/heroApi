@@ -164,6 +164,20 @@ class ViewController: UIViewController {
     }
     
     @objc func submitRequest() {
+        var allFieldsAreFileld = true
+        
+        for picker in pickerList {
+            if picker.textField.text == "" {
+                allFieldsAreFileld = false
+                break
+            }
+        }
+        
+        if !allFieldsAreFileld {
+            showEmptyFieldWarning()
+            return
+        }
+        
         let json = ["eyeColor":     String(pickerList[0].choiceIndex),
                     "hairType":     String(pickerList[1].choiceIndex),
                     "intelligence": String(pickerList[2].choiceIndex),
@@ -178,6 +192,15 @@ class ViewController: UIViewController {
             
             self.showResponse(message: "a " + role + "!")
         }
+    }
+    
+    func showEmptyFieldWarning() {
+        let alert = UIAlertController(title:   "Invalid answers!",
+                                      message: "All fields must be filled!", preferredStyle: .alert)
+
+        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+
+        self.present(alert, animated: true)
     }
     
     func showResponse(message: String) {
