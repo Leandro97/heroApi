@@ -9,9 +9,10 @@
 import UIKit
 
 public class CustomPickerView: UIView {
-    var textField   = UITextField()
-    var dropDown    = UIPickerView()
-    let toolBar     = UIToolbar()
+    var fieldName = UILabel()
+    var textField = UITextField()
+    var dropDown  = UIPickerView()
+    let toolBar   = UIToolbar()
     
     var choicesList = [String]()
     var choiceIndex = 0
@@ -66,11 +67,11 @@ public class CustomPickerView: UIView {
 }
 
 extension CustomPickerView: UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate {
-    public func numberOfComponents(in pickerView: UIPickerView) -> Int{
+    public func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
 
-    public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int{
+    public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
         return choicesList.count
     }
 
@@ -83,10 +84,16 @@ extension CustomPickerView: UIPickerViewDelegate, UIPickerViewDataSource, UIText
     }
     
     public func textFieldDidBeginEditing(_ textField: UITextField) {
-        if textField.text != "" {
-            return
-        }
+        if textField.text != "" { return  }
+        textField.text          = choicesList[0]
+        fieldName.text          = textField.placeholder
+        fieldName.textColor     = .gray
+        fieldName.font          = .systemFont(ofSize: 12, weight: .light)
+        fieldName.textAlignment = .center
         
-        textField.text = choicesList[0]
+        self.addSubview(fieldName)
+        fieldName.anchor(leading:  self.leadingAnchor,
+                         bottom:   textField.topAnchor,
+                         trailing: self.trailingAnchor)
     }
 }
