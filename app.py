@@ -22,7 +22,7 @@ def my_test_endpoint():
 	types      = {0: "Villain", 1: "Hero"}
 	result     = types[prediction[0]]
 
-	return jsonify({"message": result	})
+	return jsonify({"message": result})
 
 if __name__ == "__main__":
 	port = int(os.environ.get("PORT", 5000))
