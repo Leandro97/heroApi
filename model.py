@@ -6,8 +6,7 @@ import pandas as pd
 from os import path
 from sklearn.preprocessing import LabelEncoder
 from sklearn.externals import joblib
-from sklearn.linear_model import LogisticRegression
-from sklearn.externals import joblib
+from sklearn.ensemble import RandomForestClassifier
 
 def formatPowerStat(ps):
     if ps < 20:
@@ -46,17 +45,18 @@ def createDataset():
 		with open("heroes.csv", 'w', newline='') as csvfile:
 			spamwriter = csv.writer(csvfile, delimiter = ',')
 			spamwriter.writerow(["name", "gender", "eyeColor", "hairType", 
-				             "intelligence", "strength", "speed", "role"])
+				             "intelligence", "strength", "speed", "power", 
+					     "combat", "role"])
 
 			for charId in range(1,732):
-			    URL      = "https://www.superheroapi.com/api/{}/{}".format("3360286107350243", charId)
-			    response = requests.get(url = URL).json() 
+			    URL         = "https://www.superheroapi.com/api/{}/{}".format("3360286107350243", charId)
+			    response    = requests.get(url = URL).json() 
 
 			    spamwriter.writerow([response["name"], response["appearance"]["gender"],
-				                 response["appearance"]["eye-color"],
-				                 response["appearance"]["hair-color"], response["powerstats"]["intelligence"],
-				                 response["powerstats"]["strength"], response["powerstats"]["speed"],
-				                 response["biography"]["alignment"]])
+						 response["appearance"]["eye-color"], response["appearance"]["hair-color"],
+						 response["powerstats"]["intelligence"], response["powerstats"]["strength"],
+						 response["powerstats"]["speed"], response["powerstats"]["power"],
+						 response["powerstats"]["combat"], response["biography"]["alignment"]])
 
 	df = pd.read_csv("heroes.csv")
 	df = df.fillna(df.mean()) #setting mean in NaN values
@@ -67,15 +67,24 @@ def createDataset():
 	df["hairType"] = df["hairType"].map(lambda ht : formatHairType(ht)) #categorizing hair type
 
 	le         = LabelEncoder()
-	df["role"] = df["role"].replace("-", "neutral") 
+	df["role"] = df["role"].replace("-", "bad") 
+	df["role"] = df["role"].replace("neutral", "bad") 
 	df["role"] = le.fit_transform(df["role"]) #categorizing role
 	df         = df.drop("gender", axis = 1)
 
-	X = df.iloc[:, 1:-1].values
-	y = df.iloc[:, -1].values
+	#counting heroes and villains
+	countHero, countVillain = df["role"].value_counts()
 
-	classifier = LogisticRegression(random_state = 0, solver = "lbfgs", multi_class = "auto")
+	dfHero    = df[df["role"] == 1] #hero dataframe
+	dfVillain = df[df["role"] == 0] #villain dataframe
+
+	newDfVillain = dfVillain.sample(countHero, replace = True, random_state = 1) #oversampling hero dataframe
+	balancedDf = pd.concat([newDfVillain, dfHero], axis = 0) #new balanced dataframe
+
+	X = balancedDf.iloc[:, 1:-1].values
+	y = balancedDf.iloc[:, -1].values
+
+	classifier = RandomForestClassifier(n_estimators = 10, criterion = 'entropy', random_state = 0)
 	classifier.fit(X, y)
 
 	joblib.dump(classifier, "classifier.joblib")
-
