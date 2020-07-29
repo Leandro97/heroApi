@@ -247,7 +247,7 @@ class ViewController: UIViewController {
     
     func showAlert(title: String, message: String) {
         DispatchQueue.main.async {
-            let alert = UIAlertController(title:   "You are...",
+            let alert = UIAlertController(title:   title,
                                           message: message, preferredStyle: .alert)
 
             alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
