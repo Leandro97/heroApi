@@ -24,6 +24,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        configureHeaderView()
         configureEyeColorPickerView()
         configureHairTypePicker()
         configureIntelligencePicker()
@@ -34,6 +35,51 @@ class ViewController: UIViewController {
         configureSubmitButton()
     }
     
+    func configureHeaderView() {
+        headerView                 = UIView()
+        guard let headerView       = headerView else { return }
+        headerView.backgroundColor = UIColor.init(red: 8/255, green: 128/255, blue: 171/255, alpha: 1)
+        
+        self.view.addSubview(headerView)
+        headerView.anchor(top:      self.view.topAnchor,
+                          leading:  self.view.leadingAnchor,
+                          trailing: self.view.trailingAnchor,
+                          padding:  UIEdgeInsets(top: 20, left: 0, bottom: 0, right: 0),
+                          size:     CGSize(width: 0, height: 80))
+        
+        setTitleLabel()
+        setIcon()
+    }
+    
+    func setTitleLabel() {
+        let label            = UILabel()
+        guard let headerView = headerView else { return }
+        label.textAlignment  = .left
+        label.textColor      = .white
+        label.text           = "Am I a hero?"
+        label.font           = UIFont(name: "AvenirNextCondensed-Heavy", size: 36)
+        
+        headerView.addSubview(label)
+        label.anchor(top:     headerView.topAnchor,
+                     leading: headerView.leadingAnchor,
+                     bottom:  headerView.bottomAnchor,
+                     padding: UIEdgeInsets(top: 0, left: 40, bottom: 0, right: 0))
+    }
+    
+    func setIcon() {
+        let imageView         = UIImageView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        guard let headerView  = headerView else { return }
+        imageView.image       = UIImage(named: "hero")?.withRenderingMode(.alwaysTemplate)
+        imageView.tintColor   = .white
+        imageView.contentMode = .scaleToFill
+        
+        headerView.addSubview(imageView)
+        imageView.anchor(top:      headerView.topAnchor,
+                         trailing: headerView.trailingAnchor,
+                         padding:  UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 10))
+        
+    }
+    
     func configureEyeColorPickerView() {
         eyeColorPicker           = CustomPickerView()
         guard let eyeColorPicker = eyeColorPicker else { return }
@@ -42,10 +88,10 @@ class ViewController: UIViewController {
                                   choicesList:     ["Blue", "Brown", "Green", "Other"])
         
         self.view.addSubview(eyeColorPicker)
-        eyeColorPicker.anchor(top:      self.view.topAnchor,
+        eyeColorPicker.anchor(top:      headerView?.bottomAnchor,
                               leading:  self.view.leadingAnchor,
                               trailing: self.view.trailingAnchor,
-                              padding:  UIEdgeInsets(top: 50, left: 16, bottom: 0, right: 16),
+                              padding:  UIEdgeInsets(top: 15, left: 16, bottom: 0, right: 16),
                               size:     CGSize(width: 0, height: 40))
         pickerList.append(eyeColorPicker)
     }
@@ -174,7 +220,7 @@ class ViewController: UIViewController {
         }
         
         if !allFieldsAreFileld {
-            showEmptyFieldWarning()
+            self.showAlert(title: "Invalid answers!", message: "All fields must be filled!")
             return
         }
         
@@ -190,20 +236,16 @@ class ViewController: UIViewController {
             let responseJson = try? JSONSerialization.jsonObject(with: data ?? Data(), options: []) as? [String : String]
             let role         = responseJson?["message"] ?? ""
             
-            self.showResponse(message: "a " + role + "!")
+            if role == "" {
+                self.showAlert(title: "Classifier being trained!", message: "Try again in a few seconds")
+                return
+            }
+            
+            self.showAlert(title: "You are...", message: "a " + role + "!")
         }
     }
     
-    func showEmptyFieldWarning() {
-        let alert = UIAlertController(title:   "Invalid answers!",
-                                      message: "All fields must be filled!", preferredStyle: .alert)
-
-        alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
-
-        self.present(alert, animated: true)
-    }
-    
-    func showResponse(message: String) {
+    func showAlert(title: String, message: String) {
         DispatchQueue.main.async {
             let alert = UIAlertController(title:   "You are...",
                                           message: message, preferredStyle: .alert)
