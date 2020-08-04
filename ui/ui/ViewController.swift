@@ -9,6 +9,7 @@
 import UIKit
 
 class ViewController: UIViewController {
+    var spinner:            UIView?
     var headerView:         UIView?
     var eyeColorPicker:     CustomPickerView?
     var hairTypePicker:     CustomPickerView?
@@ -231,16 +232,18 @@ class ViewController: UIViewController {
                     "speed":        String(pickerList[4].choiceIndex),
                     "power":        String(pickerList[5].choiceIndex),
                     "combat":       String(pickerList[6].choiceIndex)]
-
+        
+        showSpinner(onView: self.view)
         RequestHandler.performRequest(json: json) { (data, response, error) in
             let responseJson = try? JSONSerialization.jsonObject(with: data ?? Data(), options: []) as? [String : String]
             let role         = responseJson?["message"] ?? ""
             
             if role == "" {
-                self.showAlert(title: "Classifier being trained!", message: "Try again in a few seconds")
+                self.submitRequest()
                 return
             }
             
+            self.removeSpinner()
             self.showAlert(title: "You are...", message: "a " + role + "!")
         }
     }
@@ -253,6 +256,33 @@ class ViewController: UIViewController {
             alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
 
             self.present(alert, animated: true)
+        }
+    }
+}
+
+extension ViewController {
+    func showSpinner(onView : UIView) {
+        if let _ = spinner { return }
+        
+        let spinnerView             = UIView.init(frame: onView.bounds)
+        spinnerView.backgroundColor = UIColor.init(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
+        
+        let ai = UIActivityIndicatorView.init(style: .medium)
+        ai.startAnimating()
+        ai.center = spinnerView.center
+        
+        DispatchQueue.main.async {
+            spinnerView.addSubview(ai)
+            onView.addSubview(spinnerView)
+        }
+        
+        spinner = spinnerView
+    }
+    
+    func removeSpinner() {
+        DispatchQueue.main.async {
+            self.spinner?.removeFromSuperview()
+            self.spinner = nil
         }
     }
 }
